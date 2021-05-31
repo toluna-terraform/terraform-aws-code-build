@@ -1,23 +1,21 @@
 locals{
     splited_repository_list= split("/",var.source_repository)
-    repository_name = splited_repository_list[length(splited_repository_list)]
-    splited_branch_list = split("/", var.source_branch)
-    branch_name = splited_branch_list[length(splited_branch_list)]
+    repository_name = local.splited_repository_list[1]
+    branch_name = var.source_branch
 }
 
-
-module "aws_codebuild_project" {
-
-}
 
 resource "aws_codebuild_project" "codebuild" {
-  name          = "build-${local.repository_name}-${local.branch_name}" 
+  name          = "codebuild-${var.env_name}-${local.repository_name}" 
   description   = "Build spec for ${local.repository_name}"
-  build_timeout = "500"
-  service_role  = aws_iam_role.codebuild_role
-
+  build_timeout = "120"
+  service_role  = aws_iam_role.codebuild_role.arn
+  # source  {
+  #   type = "NO_SOURCE"
+  #   buildspec = "./files/buildspec.yml"
+  # }
   artifacts {
-    type = "NO_ARTIFACTS"
+    type = "CODEPIPELINE"
   }
 
   environment {
@@ -34,20 +32,30 @@ resource "aws_codebuild_project" "codebuild" {
     }
   }
 
-  source {
-    type            = "BITBUCKET"
-    location        = "https://github.com/mitchellh/packer.git"
-    git_clone_depth = 1
+source {
+    type = "CODEPIPELINE"
+    buildspec = "files/buildspec.yml"
+}
 
-    git_submodules_config {
-      fetch_submodules = false
-    }
-  }
+
+
+  # source {
+  #   type            = "BITBUCKET"
+  #   location        = "https://github.com/mitchellh/packer.git"
+  #   git_clone_depth = 1
+
+  #   git_submodules_config {
+  #     fetch_submodules = false
+  #   }
+  #   filter {
+  #     source = /infra
+  #   }
+  # }
 
   source_version = var.source_branch
 
     tags = tomap({
-                Name="codebuild-${locals.prefix}",
+                Name="codebuild-${var.env_name}-${local.repository_name}",
                 environment=var.env_name,
                 created_by="terraform"
     })
