@@ -10,12 +10,9 @@ resource "aws_codebuild_project" "codebuild" {
   description   = "Build spec for ${local.repository_name}"
   build_timeout = "120"
   service_role  = aws_iam_role.codebuild_role.arn
-  # source  {
-  #   type = "NO_SOURCE"
-  #   buildspec = "./files/buildspec.yml"
-  # }
+
   artifacts {
-    type = "CODEPIPELINE"
+    type = "NO_ARTIFACTS"
   }
 
   environment {
@@ -32,27 +29,22 @@ resource "aws_codebuild_project" "codebuild" {
     }
   }
 
-source {
-    type = "CODEPIPELINE"
+  source {
+    type            = "GITHUB"
+    location        = "https://github.com/toluna-terraform/terraform-aws-code-build.git"
+    git_clone_depth = 1
     buildspec = "files/buildspec.yml"
-}
 
+    # auth_type   = "PERSONAL_ACCESS_TOKEN"
+    # server_type = "GITHUB"
+    # token       = "example"
 
+    git_submodules_config {
+      fetch_submodules = false
+    }
 
-  # source {
-  #   type            = "BITBUCKET"
-  #   location        = "https://github.com/mitchellh/packer.git"
-  #   git_clone_depth = 1
+  }
 
-  #   git_submodules_config {
-  #     fetch_submodules = false
-  #   }
-  #   filter {
-  #     source = /infra
-  #   }
-  # }
-
-  source_version = var.source_branch
 
     tags = tomap({
                 Name="codebuild-${var.env_name}-${local.repository_name}",
@@ -64,20 +56,41 @@ source {
 resource "aws_iam_role" "codebuild_role" {
   name = "role-${local.repository_name}-${var.env_name}"
 
-  assume_role_policy = <<EOF
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Principal": {
-        "Service": "codebuild.amazonaws.com"
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
+        Sid    = ""
+        Principal = {
+          Service = "codebuild.amazonaws.com"
+        }
       },
-      "Action": "sts:AssumeRole"
-    }
-  ]
+    ]
+  })
 }
-EOF
+
+resource "aws_iam_role_policy" "cloudWatch_policy" {
+  name = "test_policy"
+  role = aws_iam_role.codebuild_role.id
+
+  # Terraform's "jsonencode" function converts a
+  # Terraform expression result to valid JSON syntax.
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = [
+            "logs:CreateLogGroup",
+            "logs:CreateLogStream",
+            "logs:PutLogEvents"
+        ]
+        Effect   = "Allow"
+        Resource = "*"
+      },
+    ]
+  })
 }
 
 provider "aws" {

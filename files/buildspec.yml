@@ -35,7 +35,7 @@ phases:
       # - command
   build:
     commands:
-      # - command
+       - echo babla
       # - command
   #post_build:
     #commands:
