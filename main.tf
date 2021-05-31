@@ -1,6 +1,8 @@
 locals{
-    prefix = "${var.env_name}_${var.name}"
-    repo_name = split("/",var.source_repository)
+    splited_repository_list= split("/",var.source_repository)
+    repository_name = splited_repository_list[length(splited_repository_list)]
+    splited_branch_list = split("/", var.source_branch)
+    branch_name = splited_branch_list[length(splited_branch_list)]
 }
 
 
@@ -9,9 +11,9 @@ module "aws_codebuild_project" {
 }
 
 resource "aws_codebuild_project" "codebuild" {
-  name          = "build-${locals.prefix}" 
-  description   = "Build project...."
-  build_timeout = "5"
+  name          = "build-${local.repository_name}-${local.branch_name}" 
+  description   = "Build spec for ${local.repository_name}"
+  build_timeout = "500"
   service_role  = aws_iam_role.codebuild_role
 
   artifacts {
@@ -23,7 +25,6 @@ resource "aws_codebuild_project" "codebuild" {
     image                       = "aws/codebuild/amazonlinux2-x86_64-standard:3.0"
     type                        = "LINUX_CONTAINER"
     image_pull_credentials_type = "CODEBUILD"
-
   }
 
   logs_config {
@@ -53,7 +54,7 @@ resource "aws_codebuild_project" "codebuild" {
 }
 
 resource "aws_iam_role" "codebuild_role" {
-  name = "example"
+  name = "role-${local.repository_name}-${var.env_name}"
 
   assume_role_policy = <<EOF
 {
