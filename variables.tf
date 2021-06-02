@@ -25,6 +25,6 @@ variable "source_repository_url" {
 
  variable "source_branch" {
      type = string
-     default = "master"
+     default = "develop"
  }
 

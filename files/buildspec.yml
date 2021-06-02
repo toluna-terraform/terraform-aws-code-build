@@ -39,8 +39,9 @@ phases:
       # - command
   build:
     commands:
-       - echo babla shaked hi
-      # - command
+       - cd terraform
+       - terraform init
+       - terraform plan
   #post_build:
     #commands:
       # - command
