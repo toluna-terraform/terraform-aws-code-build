@@ -42,8 +42,9 @@ resource "aws_codebuild_project" "codebuild" {
     git_submodules_config {
       fetch_submodules = false
     }
-
   }
+
+   source_version =  local.branch_name
 
     tags = tomap({
                 Name="codebuild-${var.env_name}-${local.repository_name}",

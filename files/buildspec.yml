@@ -31,7 +31,7 @@ phases:
       - yum install -y yum-utils
       - yum-config-manager --add-repo https://rpm.releases.hashicorp.com/AmazonLinux/hashicorp.repo
       - yum --showduplicate list terraform
-      - yum install terraform-0.15.4-1
+      - yum install -y terraform-0.15.4-1
 
   #pre_build:
     #commands:
