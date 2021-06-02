@@ -33,7 +33,7 @@ resource "aws_codebuild_project" "codebuild" {
     type            = "GITHUB"
     location        = "https://github.com/toluna-terraform/terraform-aws-code-build.git"
     git_clone_depth = 1
-    buildspec = "files/buildspec.yml"
+    buildspec = file("files/buildspec.yml")
 
     # auth_type   = "PERSONAL_ACCESS_TOKEN"
     # server_type = "GITHUB"
@@ -44,7 +44,6 @@ resource "aws_codebuild_project" "codebuild" {
     }
 
   }
-
 
     tags = tomap({
                 Name="codebuild-${var.env_name}-${local.repository_name}",
