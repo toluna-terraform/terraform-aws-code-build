@@ -15,8 +15,14 @@
 
  variable "source_repository" {
      type = string
-     default = "tolunaengineering/chorus"
+     default = "chorus"
  }
+
+variable "source_repository_url" {
+     type = string
+     default = "https://bitbucket.org/tolunaengineering/chorus.git"
+ }
+
  variable "source_branch" {
      type = string
      default = "master"

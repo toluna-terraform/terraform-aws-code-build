@@ -1,6 +1,6 @@
 locals{
-    splited_repository_list= split("/",var.source_repository)
-    repository_name = local.splited_repository_list[1]
+    repository_name = var.source_repository
+    repository_url = var.source_repository_url
     branch_name = var.source_branch
 }
 
@@ -30,8 +30,8 @@ resource "aws_codebuild_project" "codebuild" {
   }
 
   source {
-    type            = "GITHUB"
-    location        = "https://github.com/toluna-terraform/terraform-aws-code-build.git"
+    type            = "BITBUCKET"
+    location        = local.repository_url
     git_clone_depth = 1
     buildspec = file("files/buildspec.yml")
 
