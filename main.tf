@@ -2,11 +2,12 @@ locals{
     repository_name = var.source_repository
     repository_url = var.source_repository_url
     branch_name = var.source_branch
+    build_name = "codebuild-${var.env_name}-${local.repository_name}" 
 }
 
 
 resource "aws_codebuild_project" "codebuild" {
-  name          = "codebuild-${var.env_name}-${local.repository_name}" 
+  name          = "${local.build_name}"
   description   = "Build spec for ${local.repository_name}"
   build_timeout = "120"
   service_role  = aws_iam_role.codebuild_role.arn
@@ -20,12 +21,34 @@ resource "aws_codebuild_project" "codebuild" {
     image                       = "aws/codebuild/amazonlinux2-x86_64-standard:3.0"
     type                        = "LINUX_CONTAINER"
     image_pull_credentials_type = "CODEBUILD"
+
+    dynamic "environment_variable" {
+      for_each = var.environment_variables
+      
+      content {
+        name                 = environment_variable.key
+        value                = environment_variable.value
+      }
+
+    }
+      dynamic "environment_variable" {
+        for_each = var.environment_variables_parameter_store
+        
+        content {
+          name                 = environment_variable.key
+          value                = environment_variable.value
+          type                 = "PARAMETER_STORE"
+        }
+
+      }
+
+      privileged_mode = var.privileged_mode  
   }
 
   logs_config {
     cloudwatch_logs {
-      group_name  = "log-group"
-      stream_name = "log-stream"
+      group_name  = "/${var.env_name}/${local.build_name}/log-group"
+      stream_name = "/${var.env_name}/${local.build_name}/stream"
     }
   }
 
@@ -33,11 +56,7 @@ resource "aws_codebuild_project" "codebuild" {
     type            = "BITBUCKET"
     location        = local.repository_url
     git_clone_depth = 1
-    buildspec = file("files/buildspec.yml")
-
-    # auth_type   = "PERSONAL_ACCESS_TOKEN"
-    # server_type = "GITHUB"
-    # token       = "example"
+    buildspec = file(var.buildspec_file)
 
     git_submodules_config {
       fetch_submodules = false
@@ -70,7 +89,7 @@ resource "aws_iam_role" "codebuild_role" {
     ]
   })
 }
-
+//this should be a variable - this one is specific to ecr
 resource "aws_iam_role_policy" "cloudWatch_policy" {
   name = "test_policy"
   role = aws_iam_role.codebuild_role.id
@@ -84,7 +103,9 @@ resource "aws_iam_role_policy" "cloudWatch_policy" {
         Action = [
             "logs:CreateLogGroup",
             "logs:CreateLogStream",
-            "logs:PutLogEvents"
+            "logs:PutLogEvents",
+            "ecr:*",
+            "ssm:*"
         ]
         Effect   = "Allow"
         Resource = "*"
@@ -95,5 +116,5 @@ resource "aws_iam_role_policy" "cloudWatch_policy" {
 
 provider "aws" {
     region = var.aws_region
-    profile = var.aws_profile
+   // profile = var.aws_profile
 }

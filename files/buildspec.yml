@@ -1,66 +1,33 @@
+# This requires the following environment variables be set on the Project:
+# AWS_REGION (Supplied by CodeBuild)
+# AWS_ACCOUNT_ID
+# IMAGE_REPO_NAME
+# IMAGE_TAG
+
+
 version: 0.2
 
-#env:
-  #variables:
-     # key: "value"
-     # key: "value"
-  #parameter-store:
-     # key: "value"
-     # key: "value"
-  #secrets-manager:
-     # key: secret-id:json-key:version-stage:version-id
-     # key: secret-id:json-key:version-stage:version-id
-  #exported-variables:
-     # - variable
-     # - variable
-  #git-credential-helper: yes
-#batch:
-  #fast-fail: true
-  #build-list:
-  #build-matrix:
-  #build-graph:
 phases:
   install:
-    #If you use the Ubuntu standard image 2.0 or later, you must specify runtime-versions.
-    #If you specify runtime-versions and use an image other than Ubuntu standard image 2.0, the build fails.
-    #runtime-versions:
-      # name: version
-      # name: version
+    runtime-versions:
+      docker: 18
+  pre_build:
     commands:
-      - echo installing....
-      - yum install -y yum-utils
-      - yum-config-manager --add-repo https://rpm.releases.hashicorp.com/AmazonLinux/hashicorp.repo
-      - yum --showduplicate list terraform
-      - yum install -y terraform-0.15.4-1
-
-  #pre_build:
-    #commands:
-      # - command
-      # - command
+      - echo Logging in to Amazon ECR...
+      - $(aws ecr get-login --no-include-email --region $AWS_REGION)
+      - CODEBUILD_RESOLVED_SOURCE_VERSION="${CODEBUILD_RESOLVED_SOURCE_VERSION:-$IMAGE_TAG}"
+      - IMAGE_TAG="$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)"
+      - IMAGE_URI="$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$IMAGE_REPO_NAME:$IMAGE_TAG"
   build:
     commands:
-       - cd terraform
-       - terraform init
-       - terraform plan
-  #post_build:
-    #commands:
-      # - command
-      # - command
-#reports:
-  #report-name-or-arn:
-    #files:
-      # - location
-      # - location
-    #base-directory: location
-    #discard-paths: yes
-    #file-format: JunitXml | CucumberJson
-#artifacts:
-  #files:
-    # - location
-    # - location
-  #name: $(date +%Y-%m-%d)
-  #discard-paths: yes
-  #base-directory: location
-#cache:
-  #paths:
-    # - paths
+      - echo Build started on `date`
+      - cd service
+      - echo ADO_USER=${ADO_USER}, ADO_PASSWORD=${ADO_PASSWORD}
+      - docker build -t $IMAGE_URI --build-arg ADO_USER=$ADO_USER --build-arg ADO_PASSWORD=$ADO_PASSWORD .
+  post_build:
+    commands:
+      - bash -c "if [ /"$CODEBUILD_BUILD_SUCCEEDING/" == /"0/" ]; then exit 1; fi"
+      - echo Build stage successfully completed on `date`
+      - echo Pushing the Docker image...
+      - docker push $IMAGE_URI
+      - printf '[{"name":"nginx","imageUri":"%s"}]' "$IMAGE_URI" > images.json
