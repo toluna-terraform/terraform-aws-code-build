@@ -2,7 +2,7 @@ locals{
     repository_name = var.source_repository
     repository_url = var.source_repository_url
     branch_name = var.source_branch
-    build_name = "codebuild-${var.env_name}-${local.repository_name}" 
+    build_name = "codebuild-${var.env_name}" 
 }
 
 
