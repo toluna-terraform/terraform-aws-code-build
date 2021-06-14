@@ -47,8 +47,8 @@ resource "aws_codebuild_project" "codebuild" {
 
   logs_config {
     cloudwatch_logs {
-      group_name  = "/${var.env_name}/${local.build_name}/log-group"
-      stream_name = "/${var.env_name}/${local.build_name}/stream"
+      group_name  = "/${local.build_name}/log-group"
+      stream_name = "/${local.build_name}/stream"
     }
   }
 
@@ -66,14 +66,14 @@ resource "aws_codebuild_project" "codebuild" {
    source_version =  local.branch_name
 
     tags = tomap({
-                Name="codebuild-${var.env_name}-${local.repository_name}",
+                Name="codebuild-${local.build_name}",
                 environment=var.env_name,
                 created_by="terraform"
     })
 }
 
 resource "aws_iam_role" "codebuild_role" {
-  name = "role-${local.repository_name}-${var.env_name}"
+  name = "role-${local.build_name}"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
