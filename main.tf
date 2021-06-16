@@ -1,14 +1,11 @@
 locals{
-    repository_name = var.source_repository
-    repository_url = var.source_repository_url
-    branch_name = var.source_branch
     build_name = "codebuild-${var.env_name}" 
 }
 
 
 resource "aws_codebuild_project" "codebuild" {
   name          = "${local.build_name}"
-  description   = "Build spec for ${local.repository_name}"
+  description   = "Build spec for ${var.source_repository}"
   build_timeout = "120"
   service_role  = aws_iam_role.codebuild_role.arn
 
@@ -54,7 +51,7 @@ resource "aws_codebuild_project" "codebuild" {
 
   source {
     type            = "BITBUCKET"
-    location        = local.repository_url
+    location        = var.source_repository_url
     git_clone_depth = 1
     buildspec = file(var.buildspec_file)
 
@@ -63,7 +60,7 @@ resource "aws_codebuild_project" "codebuild" {
     }
   }
 
-   source_version =  local.branch_name
+   source_version =  var.source_branch
 
     tags = tomap({
                 Name="codebuild-${local.build_name}",
@@ -74,47 +71,11 @@ resource "aws_codebuild_project" "codebuild" {
 
 resource "aws_iam_role" "codebuild_role" {
   name = "role-${local.build_name}"
-
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Action = "sts:AssumeRole"
-        Effect = "Allow"
-        Sid    = ""
-        Principal = {
-          Service = "codebuild.amazonaws.com"
-        }
-      },
-    ]
-  })
+  assume_role_policy = data.aws_iam_policy_document.codebuild_assume_role_policy.json
 }
-//this should be a variable - this one is specific to ecr
+
 resource "aws_iam_role_policy" "cloudWatch_policy" {
   name = "test_policy"
   role = aws_iam_role.codebuild_role.id
-
-  # Terraform's "jsonencode" function converts a
-  # Terraform expression result to valid JSON syntax.
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Action = [
-            "logs:CreateLogGroup",
-            "logs:CreateLogStream",
-            "logs:PutLogEvents",
-            "ecr:*",
-            "ssm:*"
-        ]
-        Effect   = "Allow"
-        Resource = "*"
-      },
-    ]
-  })
-}
-
-provider "aws" {
-    region = var.aws_region
-   // profile = var.aws_profile
+  policy = data.aws_iam_policy_document.codebuild_role_policy.json
 }
