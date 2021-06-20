@@ -10,7 +10,10 @@ resource "aws_codebuild_project" "codebuild" {
   service_role  = aws_iam_role.codebuild_role.arn
 
   artifacts {
-    type = "NO_ARTIFACTS"
+    packaging = "NONE"
+    override_artifact_name = false
+    location = var.s3_bucket
+    type = "S3"
   }
 
   environment {
