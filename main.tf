@@ -12,8 +12,8 @@ resource "aws_codebuild_project" "codebuild" {
   artifacts {
     packaging = "NONE"
     override_artifact_name = false
-    location = var.s3_bucket
-    type = "S3"
+    # location = var.s3_bucket
+    type = "CODEPIPELINE"
   }
 
   environment {
@@ -53,14 +53,14 @@ resource "aws_codebuild_project" "codebuild" {
   }
 
   source {
-    type            = "BITBUCKET"
-    location        = var.source_repository_url
-    git_clone_depth = 1
+    type            = "CODEPIPELINE"
+    #location        = var.source_repository_url
+   # git_clone_depth = 1
     buildspec = var.buildspec_file
 
-    git_submodules_config {
-      fetch_submodules = false
-    }
+    # git_submodules_config {
+    #   fetch_submodules = false
+    # }
   }
 
    source_version =  var.source_branch
