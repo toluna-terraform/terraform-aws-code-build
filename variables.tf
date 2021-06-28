@@ -9,7 +9,6 @@
  variable "source_repository" {
      default = "chorus"
      type     = string
-
  }
 
 variable "source_repository_url" {

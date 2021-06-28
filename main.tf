@@ -55,9 +55,9 @@ resource "aws_codebuild_project" "codebuild" {
     type            = "CODEPIPELINE"
     #location        = var.source_repository_url
    # git_clone_depth = 1
-    buildspec = var.buildspec_file
-
-    # git_submodules_config {
+    buildspec = file(var.buildspec_file)
+    
+     # git_submodules_config {
     #   fetch_submodules = false
     # }
   }
