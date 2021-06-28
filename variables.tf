@@ -3,19 +3,19 @@
  }
 
  variable "source_repository" {
+     default = "chorus"
      type     = string
+
  }
 
 variable "source_repository_url" {
-     type     = string
+    default  = "https://bitbucket.org/tolunaengineering/chorus.git"
+    type     = string
  }
-
-variable "s3_bucket" {
-    type = string
-}
 
  variable "source_branch" {
      type     = string
+     default = "master"
  }
 
  variable "buildspec_file" {
@@ -23,10 +23,12 @@ variable "s3_bucket" {
  }
 
 variable "environment_variables" {
+  default = {}  
   type        = map(string)
 }
 
 variable "environment_variables_parameter_store" {
+  default = {} 
   type        = map(string)
 }
 
