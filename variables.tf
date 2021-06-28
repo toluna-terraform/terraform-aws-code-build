@@ -2,6 +2,10 @@
      type     = string
  }
 
+  variable "s3_bucket" {
+     type     = string
+ }
+
  variable "source_repository" {
      default = "chorus"
      type     = string
@@ -28,8 +32,11 @@ variable "environment_variables" {
 }
 
 variable "environment_variables_parameter_store" {
-  default = {} 
-  type        = map(string)
+ type = map(string)
+ default = {
+ "ADO_USER" = "/app/ado_user"
+ "ADO_PASSWORD" = "/app/ado_password"
+ }
 }
 
 variable "privileged_mode" { 

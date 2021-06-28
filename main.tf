@@ -12,7 +12,6 @@ resource "aws_codebuild_project" "codebuild" {
   artifacts {
     packaging = "NONE"
     override_artifact_name = false
-    # location = var.s3_bucket
     type = "CODEPIPELINE"
   }
 
