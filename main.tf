@@ -46,8 +46,8 @@ resource "aws_codebuild_project" "codebuild" {
 
   logs_config {
     cloudwatch_logs {
-      group_name  = "/${local.build_name}/log-group"
-      stream_name = "/${local.build_name}/stream"
+      group_name  = "/code_build/${local.build_name}/log-group"
+      stream_name = "/code_build/${local.build_name}/stream"
     }
   }
 
