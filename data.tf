@@ -33,7 +33,9 @@ data "aws_iam_policy_document" "codebuild_role_policy" {
             "logs:PutLogEvents",
             "ecr:*",
             "ssm:*",
-            "ecs:DescribeTaskDefinition"
+            "ecs:DescribeTaskDefinition",
+            "cloudformation:*",
+            "s3:*"
         ]
     resources = ["*"]
   }

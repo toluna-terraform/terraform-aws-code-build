@@ -1,5 +1,5 @@
 locals{
-    build_name = "codebuild-${var.env_name}" 
+    build_name = "codebuild-${var.codebuild_name}-${var.env_name}" 
 }
 
 
@@ -46,8 +46,8 @@ resource "aws_codebuild_project" "codebuild" {
 
   logs_config {
     cloudwatch_logs {
-      group_name  = "/code_build/${local.build_name}/log-group"
-      stream_name = "/code_build/${local.build_name}/stream"
+      group_name  = "/${local.build_name}/log-group"
+      stream_name = "/${local.build_name}/stream"
     }
   }
 
@@ -77,7 +77,7 @@ resource "aws_iam_role" "codebuild_role" {
 }
 
 resource "aws_iam_role_policy" "cloudWatch_policy" {
-  name = "test_policy"
+  name = "policy-${local.build_name}"
   role = aws_iam_role.codebuild_role.id
   policy = data.aws_iam_policy_document.codebuild_role_policy.json
 }
